@@ -1,5 +1,5 @@
 {
-  "name": "bschmitt/laravel-amqp",
+  "name": "arasosman/laravel-amqp",
   "description": "AMQP wrapper for Laravel and Lumen to publish and consume messages",
   "keywords": [
     "laravel",
@@ -22,6 +22,10 @@
     {
     "name": "Björn Schmitt",
     "email": "code@bjoern.io"
+    },
+    {
+    "name": "Osman Aras",
+    "email": "osmanaras50@gmail.com"
     }
   ],
   "require": {
