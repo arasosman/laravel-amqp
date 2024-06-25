@@ -48,7 +48,7 @@ class MultiConsumer extends Request
 
             $this->channel->exchange_declare(
                 $exchange,
-                Arr::get($param, 'exchange_type', 'direct'),
+                Arr::get($param, 'exchange_type', 'fanout'),
                 Arr::get($param, 'exchange_passive', false),
                 Arr::get($param, 'exchange_durable', true),
                 Arr::get($param, 'exchange_auto_delete', false),

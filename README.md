@@ -172,6 +172,30 @@ Amqp::consume('queue-name', function ($message, $resolver) {
 ]);
 ```
 
+
+### Consume multiple queues
+
+```php
+$tasks = array([
+   "queue" => "queue1",
+   "exchange" => "amq.direct",
+   "callback" => function ($message, $resolver) {
+       SomeJob::dispatch($message->body);
+   }
+],
+[
+    "queue" => "queue2",
+    "exchange" => "amq.direct",
+    "callback" => function ($message, $resolver) {
+         SomeJob::dispatch($message->body);
+    }
+])
+
+Amqp::consumeMultiple($tasks);
+
+```
+
+
 ## Fanout example
 
 ### Publishing a message

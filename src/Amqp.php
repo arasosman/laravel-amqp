@@ -132,7 +132,7 @@ class Amqp
      * @throws Configuration
      * @throws Exception
      */
-    public function multiConsume(array $params)
+    public function multiConsume(array $params): void
     {
         foreach ($params as $param) {
             if (!isset($param['queue']) || !isset($param['exchange']) || !isset($param['callback'])) {
