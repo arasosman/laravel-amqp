@@ -2,11 +2,11 @@
 
 namespace Bschmitt\Amqp;
 
+use Bschmitt\Amqp\Exception\Configuration;
 use Closure;
-use Bschmitt\Amqp\Request;
-use Bschmitt\Amqp\Message;
-use PhpAmqpLib\Wire\AMQPTable;
+use Exception;
 use Illuminate\Support\Facades\App;
+use PhpAmqpLib\Wire\AMQPTable;
 
 /**
  * @author Björn Schmitt <code@bjoern.io>
@@ -17,15 +17,14 @@ class Amqp
 
     /**
      * @param string $routing
-     * @param mixed  $message
-     * @param array  $properties
+     * @param mixed $message
+     * @param array $properties
      *
      * @return bool|null
      *
-     * @throws Exception\Configuration
-     * @throws \Exception
+     * @throws Exception
      */
-    public function publish($routing, $message, array $properties = []) : ?bool
+    public function publish($routing, $message, array $properties = []): ?bool
     {
         $properties['routing'] = $routing;
 
@@ -38,13 +37,13 @@ class Amqp
             ->setup();
 
         $applicationHeaders = [];
-        if(isset($properties['application_headers'])) {
+        if (isset($properties['application_headers'])) {
             $applicationHeaders = $properties['application_headers'];
         }
 
         if (is_string($message)) {
             $headers = [
-                'content_type' => 'text/plain', 
+                'content_type' => 'text/plain',
                 'delivery_mode' => 2,
                 'application_headers' => new AMQPTable($applicationHeaders)
             ];
@@ -64,7 +63,7 @@ class Amqp
 
     /**
      * @param string $routing
-     * @param mixed  $message
+     * @param mixed $message
      */
     public function batchBasicPublish(string $routing, $message)
     {
@@ -77,8 +76,7 @@ class Amqp
     /**
      * @param array $properties
      *
-     * @throws Exception\Configuration
-     * @throws \Exception
+     * @throws Exception
      */
     public function batchPublish(array $properties = [])
     {
@@ -88,7 +86,7 @@ class Amqp
             ->mergeProperties($properties)
             ->setup();
 
-        foreach(self::$batchMessages as $messageData) {
+        foreach (self::$batchMessages as $messageData) {
             if (is_string($messageData['message'])) {
                 $messageData['message'] = new Message($messageData['message'], ['content_type' => 'text/plain', 'delivery_mode' => 2]);
             }
@@ -111,10 +109,10 @@ class Amqp
     }
 
     /**
-     * @param string  $queue
+     * @param string $queue
      * @param Closure $callback
-     * @param array   $properties
-     * @throws Exception\Configuration
+     * @param array $properties
+     * @throws Exception
      */
     public function consume(string $queue, Closure $callback, array $properties = [])
     {
@@ -131,11 +129,34 @@ class Amqp
     }
 
     /**
+     * @throws Configuration
+     * @throws Exception
+     */
+    public function multiConsume(array $params)
+    {
+        foreach ($params as $param) {
+            if (!isset($param['queue']) || !isset($param['exchange']) || !isset($param['callback'])) {
+                throw new \InvalidArgumentException('Each param must be an array with "queue" and "exchange" and "callback" keys');
+            }
+        }
+
+        /** @var MultiConsumer $consumer */
+        $consumer = App::make(MultiConsumer::class);
+
+        $consumer->multiArray = $params;
+        $consumer->setup();
+
+        $consumer->consume($params);
+
+        Request::shutdown($consumer->getChannel(), $consumer->getConnection());
+    }
+
+    /**
      * @param string $body
-     * @param array  $properties
+     * @param array $properties
      * @return Message
      */
-    public function message(string $body, array $properties = []) : Message
+    public function message(string $body, array $properties = []): Message
     {
         return new Message($body, $properties);
     }
