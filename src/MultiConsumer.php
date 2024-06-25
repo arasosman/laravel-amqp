@@ -3,29 +3,23 @@
 namespace Bschmitt\Amqp;
 
 use Closure;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Exception;
 use Illuminate\Support\Arr;
-use PhpAmqpLib\Exception\AMQPTimeoutException;
-use PhpAmqpLib\Message\AMQPMessage;
 
 /**
  * @author Björn Schmitt <code@bjoern.io>
  */
 class MultiConsumer extends Request
 {
+    public array $multiArray = [];
     /**
      * @var int
      */
-    protected $messageCount = 0;
-
-    public array $multiArray = [];
+    protected int $messageCount = 0;
 
     /**
-     * @param string $queue
-     * @param Closure $closure
+     * @param array $params
      * @return bool
-     * @throws \Exception
      */
     public function consume(array $params): bool
     {
@@ -33,7 +27,7 @@ class MultiConsumer extends Request
             $queue = Arr::get($param, 'queue', '');
             $callback = Arr::get($param, 'callback');
 
-            $consumerTag = sprintf('laravel-microservice.%s.', $queue) . getmypid().'-'.uniqid();
+            $consumerTag = sprintf('laravel-microservice.%s.', $queue) . getmypid() . '-' . uniqid();
             $this->channel->basic_consume($queue, $consumerTag, false, false, false, false, $callback);
         }
 
@@ -43,7 +37,7 @@ class MultiConsumer extends Request
         return true;
     }
 
-    public function setup()
+    public function setup(): void
     {
         $this->connect();
 
